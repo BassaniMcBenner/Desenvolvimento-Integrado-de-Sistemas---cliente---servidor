@@ -257,7 +257,6 @@ def run_queue_worker(request_queue):
             sleep(0.5)
             continue
 
-
         print(f"[WORKER] CPU={cpu_percent:.1f}% (lim={cpu_limit}%) | "
               f"RAM={mem_percent:.1f}% (lim={mem_limit}%)")
 
@@ -267,7 +266,7 @@ def run_queue_worker(request_queue):
             retry = data.get("retry", 0)
             retry = min(retry + 1, 5)
             data["retry"] = retry
-            data["next_try"] = time() + (2 ** retry)  # backoff
+            data["next_try"] = time() + retry  # backoff
 
             print(f"[WORKER]: tempo de espera ")
 
@@ -332,6 +331,10 @@ def process_job(data):
     del H_matrix, g_vector, g_processed, f, f_norm, imagem_array, imagem
     # gc.collect()
 
+    # CORREÇÃO: usar bytes_img
+    img_b64 = base64.b64encode(bytes_img).decode()
+
+
     data_info = {
         "username": username,
         "index": idx,
@@ -340,14 +343,12 @@ def process_job(data):
         "signal": signal,
         "start_dt": start_dt,
         "end_dt": end_dt,
-        "size": f"{lado}x{lado}",
+        "size": f"{len(img_b64)}",
         "iters": iters,
         "time": end_time - start_time,
     }
 
-    # CORREÇÃO: usar bytes_img
-    img_b64 = base64.b64encode(bytes_img).decode()
-
+    
     mensagem = {
         "type": "2_",
         "payload": {
@@ -456,6 +457,9 @@ def handle_client(client, addr, request_queue):
                         del H_matrix, g_vector, g_processed, f, f_norm, imagem_array, imagem
                         gc.collect()
 
+                        
+                        img_b64 = base64.b64encode(bytes_img).decode()
+                
                         data_info = {
                             "username": username,
                             "index": idx,
@@ -464,14 +468,12 @@ def handle_client(client, addr, request_queue):
                             "signal": signal,
                             "start_dt": start_dt,
                             "end_dt": end_dt,
-                            "size": f"{lado}x{lado}",
+                            "size": f"{len(img_b64)}",
                             "iters": iters,
                             "time": end_time - start_time,
                         }
 
-                        # CORREÇÃO: usar bytes_img
-                        img_b64 = base64.b64encode(bytes_img).decode()
-
+                    
                         mensagem = {
                             "type": "2_",
                             "payload": {
