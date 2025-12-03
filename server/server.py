@@ -30,6 +30,16 @@ thread_limiter = BoundedSemaphore(MAX_THREADS)
 
 ACTUAL_DIR = Path(os.path.dirname(os.path.abspath(sys.argv[0])))
 
+# Caminho absoluto da pasta onde o arquivo server.py está
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Caminho absoluto para a pasta raiz (onde está teste.json)
+ROOT_DIR = os.path.dirname(BASE_DIR)
+
+# Caminho completo do teste.json
+TESTE_JSON_PATH = os.path.join(ROOT_DIR, "teste.json")
+
+
 MIN_ERROR = .0001
 MAX_WORKERS = 8
 
@@ -253,7 +263,7 @@ def run_queue_worker(request_queue):
         t.daemon = True
         t.start()
 
-        print(f"[SUPERVISOR] → Job enviado para thread dedicada")
+        print(f"[SUPERVISOR] - Job enviado para thread dedicada")
 
 def worker_process_item(payload, client):
     # limite de threads simultâneas
@@ -271,7 +281,7 @@ def worker_process_item(payload, client):
 
         historico = []
         try:
-            with open(r"C:\Users\User\Desktop\Desenvolvimento Integrado\cliente-servidor\teste.json") as f:
+            with open(TESTE_JSON_PATH, "r") as f:
                 historico = json.load(f)
         except:
             pass
@@ -305,7 +315,7 @@ def worker_process_item(payload, client):
         if (cpu_percent + cpu_requerida_pct > cpu_limit or
             mem_percent + mem_requerida_pct > mem_limit):
 
-            print(f"[WORKER] 🚫 Recursos insuficientes — Requeue → {username} idx={idx}")
+            print(f"[WORKER] Recursos insuficientes — Requeue -> {username} idx={idx}")
 
             # reenqueue
             request_queue.put({"payload": payload, "client": client})
@@ -313,7 +323,7 @@ def worker_process_item(payload, client):
             return  # encerra esta thread
 
         # (4) executa
-        print(f"[WORKER] ▶ Processando → {username} idx={idx}")
+        print(f"[WORKER] Processando -> {username} idx={idx}")
         process_job(payload, client)
 
 
@@ -396,7 +406,7 @@ def process_job(data, client):
 
     # enviar mensagem *com quebra de linha*
     client.send((json.dumps(mensagem) + "\n").encode())
-    print(f"[FINALIZADO] Process → {username}  idx -> {idx}")
+    print(f"[FINALIZADO] Process -> {username}  idx -> {idx}")
 
 def handle_client(client, addr, request_queue):
     print(f"[NOVA CONEXÃO] {addr} conectado")
